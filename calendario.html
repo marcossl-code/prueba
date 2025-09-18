@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de 2º de Bachillerato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .day-header, .day-cell {
+            padding: 8px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        /* Estilos para el modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 400px;
+            text-align: left;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl max-w-4xl w-full">
+        <!-- Título principal -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-800 leading-tight">
+                Calendario de 2º de Bachillerato
+            </h1>
+            <p class="text-lg text-gray-500 mt-2">
+                Haz clic en un día con color para ver los detalles.
+            </p>
+        </div>
+
+        <!-- Leyenda de colores -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full bg-blue-500"></span> Exámenes
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full bg-green-500"></span> Notas
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full bg-purple-500"></span> Sesión de Evaluación
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full bg-red-500"></span> Reclamaciones
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full bg-pink-500"></span> Graduación
+            </div>
+        </div>
+
+        <!-- Calendario para Abril -->
+        <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Abril de 2026</h2>
+        <div class="calendar-grid bg-gray-100 p-4 rounded-xl border border-gray-200">
+            <!-- Días de la semana -->
+            <div class="day-header text-gray-500">L</div>
+            <div class="day-header text-gray-500">M</div>
+            <div class="day-header text-gray-500">X</div>
+            <div class="day-header text-gray-500">J</div>
+            <div class="day-header text-gray-500">V</div>
+            <div class="day-header text-gray-500">S</div>
+            <div class="day-header text-gray-500">D</div>
+            
+            <!-- Celdas de abril -->
+            <div></div>
+            <div></div>
+            <div class="day-cell">1</div>
+            <div class="day-cell">2</div>
+            <div class="day-cell">3</div>
+            <div class="day-cell">4</div>
+            <div class="day-cell">5</div>
+            <div class="day-cell">6</div>
+            <div class="day-cell">7</div>
+            <div class="day-cell">8</div>
+            <div class="day-cell">9</div>
+            <div class="day-cell">10</div>
+            <div class="day-cell">11</div>
+            <div class="day-cell">12</div>
+            <div class="day-cell">13</div>
+            <div class="day-cell">14</div>
+            <div class="day-cell">15</div>
+            <div class="day-cell">16</div>
+            <div class="day-cell">17</div>
+            <div class="day-cell">18</div>
+            <div class="day-cell">19</div>
+            <div class="day-cell">20</div>
+            <!-- Exámenes 3ª Evaluación -->
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('abril-21')">21</div>
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('abril-22')">22</div>
+            <div class="day-cell">23</div>
+            <div class="day-cell">24</div>
+            <div class="day-cell">25</div>
+            <div class="day-cell">26</div>
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('abril-27')">27</div>
+            <div class="day-cell">28</div>
+            <div class="day-cell">29</div>
+            <!-- Publicación de Notas -->
+            <div class="day-cell bg-green-200 text-green-900 border border-green-300 cursor-pointer hover:bg-green-300 transition-colors duration-200" onclick="showEvent('abril-30')">30</div>
+        </div>
+
+        <!-- Espacio entre calendarios -->
+        <div class="my-8"></div>
+
+        <!-- Calendario para Mayo -->
+        <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Mayo de 2026</h2>
+        <div class="calendar-grid bg-gray-100 p-4 rounded-xl border border-gray-200">
+            <!-- Días de la semana -->
+            <div class="day-header text-gray-500">L</div>
+            <div class="day-header text-gray-500">M</div>
+            <div class="day-header text-gray-500">X</div>
+            <div class="day-header text-gray-500">J</div>
+            <div class="day-header text-gray-500">V</div>
+            <div class="day-header text-gray-500">S</div>
+            <div class="day-header text-gray-500">D</div>
+
+            <!-- Celdas de mayo -->
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div class="day-cell">1</div>
+            <div class="day-cell">2</div>
+            <div class="day-cell">3</div>
+            <div class="day-cell">4</div>
+            <div class="day-cell">5</div>
+            <!-- Exámenes FINALES -->
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('mayo-6')">6</div>
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('mayo-7')">7</div>
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('mayo-8')">8</div>
+            <div class="day-cell">9</div>
+            <div class="day-cell">10</div>
+            <!-- Sesión de Evaluación -->
+            <div class="day-cell bg-blue-200 text-blue-900 border border-blue-300 cursor-pointer hover:bg-blue-300 transition-colors duration-200" onclick="showEvent('mayo-11')">11</div>
+            <div class="day-cell bg-purple-200 text-purple-900 border border-purple-300 cursor-pointer hover:bg-purple-300 transition-colors duration-200" onclick="showEvent('mayo-12')">12</div>
+            <!-- Publicación de Calificaciones & Reclamaciones -->
+            <div class="day-cell bg-green-200 text-green-900 border border-green-300 cursor-pointer hover:bg-green-300 transition-colors duration-200" onclick="showEvent('mayo-13-notas')">13</div>
+            <div class="day-cell bg-red-200 text-red-900 border border-red-300 cursor-pointer hover:bg-red-300 transition-colors duration-200" onclick="showEvent('mayo-14')">14</div>
+            <!-- Graduación -->
+            <div class="day-cell bg-pink-200 text-pink-900 border border-pink-300 cursor-pointer hover:bg-pink-300 transition-colors duration-200" onclick="showEvent('mayo-15')">15</div>
+            <div class="day-cell">16</div>
+            <div class="day-cell">17</div>
+            <div class="day-cell">18</div>
+            <div class="day-cell">19</div>
+            <div class="day-cell">20</div>
+            <div class="day-cell">21</div>
+            <div class="day-cell">22</div>
+            <div class="day-cell">23</div>
+            <div class="day-cell">24</div>
+            <div class="day-cell">25</div>
+            <div class="day-cell">26</div>
+            <div class="day-cell">27</div>
+            <div class="day-cell">28</div>
+            <div class="day-cell">29</div>
+            <div class="day-cell">30</div>
+            <div class="day-cell">31</div>
+        </div>
+
+        <!-- Pie de página con información adicional -->
+        <div class="mt-8 text-center text-gray-500 text-sm">
+            <p>Este calendario ha sido ajustado para cumplir con la nueva fecha límite de la DGA para la publicación de notas.</p>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar los detalles del evento -->
+    <div id="event-modal" class="hidden modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="event-title" class="text-xl font-bold text-gray-900"></h3>
+                <button onclick="hideEvent()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <p id="event-description" class="text-gray-600"></p>
+        </div>
+    </div>
+
+    <!-- Script para la funcionalidad interactiva -->
+    <script>
+        const events = {
+            'abril-21': { title: 'Exámenes de la 3ª Evaluación', description: 'Primer día de exámenes finales.' },
+            'abril-22': { title: 'Exámenes de la 3ª Evaluación', description: 'Segundo día de exámenes finales.' },
+            'abril-27': { title: 'Exámenes de la 3ª Evaluación', description: 'Tercer día de exámenes finales.' },
+            'abril-30': { title: 'Publicación de notas', description: 'Se publican las notas de la 3ª Evaluación.' },
+            'mayo-6': { title: 'Exámenes FINALES', description: 'Primer día de los exámenes de recuperación.' },
+            'mayo-7': { title: 'Exámenes FINALES', description: 'Segundo día de los exámenes de recuperación.' },
+            'mayo-8': { title: 'Exámenes FINALES', description: 'Tercer día de los exámenes de recuperación.' },
+            'mayo-11': { title: 'Exámenes FINALES', description: 'Cuarto y último día de los exámenes de recuperación.' },
+            'mayo-12': { title: 'Sesión de Evaluación', description: 'Sesión final para determinar las calificaciones de los alumnos.' },
+            'mayo-13-notas': { title: 'Publicación de Calificaciones', description: 'Se publican las notas de la evaluación final.' },
+            'mayo-14': { title: 'Días de Reclamaciones', description: 'Se pueden presentar reclamaciones sobre las notas.' },
+            'mayo-15': { title: 'Graduación', description: 'Ceremonia de graduación de los estudiantes de 2º de Bachillerato.' }
+        };
+
+        function showEvent(eventId) {
+            const event = events[eventId];
+            const modal = document.getElementById('event-modal');
+            const title = document.getElementById('event-title');
+            const description = document.getElementById('event-description');
+
+            if (event) {
+                title.textContent = event.title;
+                description.textContent = event.description;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function hideEvent() {
+            const modal = document.getElementById('event-modal');
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
