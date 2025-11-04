@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Casos Clínicos Endocrinos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            background-image: linear-gradient(to bottom right, #f0f4f8, #e2e8f0); /* Subtle gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .app-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Stronger shadow */
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 90vh; /* Adjust height for better fit */
+            border: 1px solid #e2e8f0; /* Subtle border */
+        }
+        .header {
+            background-color: #FFDAC1; /* Soft orange */
+            color: #334155; /* Darker text for contrast */
+            padding: 0.75rem 1.5rem; /* Reduced padding, adjusted for side-by-side */
+            text-align: left; /* Align text to left */
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            display: flex;
+            align-items: center; /* Align items vertically in the middle */
+            gap: 1rem; /* Space between logo and text */
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.1); /* Inner shadow for depth */
+        }
+        .header img {
+            width: 60px; /* Smaller image */
+            height: 60px;
+            border-radius: 50%; /* Circular image */
+            border: 2px solid white; /* White border around image */
+            object-fit: cover;
+        }
+        .header-content {
+            display: flex;
+            flex-direction: column; /* Stack title and subtitle */
+            align-items: flex-start; /* Align text to the left */
+        }
+        .header h1 {
+            font-size: 1.5rem; /* Slightly smaller title */
+            font-weight: 700; /* Bold */
+            margin-bottom: 0; /* Remove bottom margin */
+            line-height: 1.2; /* Adjust line height */
+        }
+        .header p {
+            font-size: 0.875rem; /* Smaller subtitle */
+            margin-top: 0.25rem; /* Small margin above subtitle */
+        }
+        .chat-area {
+            flex-grow: 1;
+            padding: 1.5rem; /* p-6 */
+            overflow-y: auto;
+            border-bottom: 1px solid #e2e8f0; /* border-b border-gray-200 */
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* Added gap for better message spacing */
+            background-color: #fcfdfe; /* Slightly off-white for chat background */
+        }
+        .message {
+            max-width: 80%;
+            margin-bottom: 0.75rem; /* mb-3 */
+            padding: 0.75rem 1rem; /* px-4 py-3 */
+            border-radius: 0.75rem; /* rounded-lg */
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-out; /* Added fade-in animation */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow for messages */
+        }
+        .message.bot {
+            background-color: #e0f2fe; /* bg-blue-100 */
+            align-self: flex-start;
+            color: #1e3a8a; /* text-blue-900 */
+            border-bottom-left-radius: 0; /* Tailor border radius for speech bubble effect */
+            border-top-left-radius: 0.25rem; /* Slightly less rounded top-left */
+        }
+        .message.user {
+            background-color: #d1fae5; /* bg-green-100 */
+            align-self: flex-end;
+            color: #065f46; /* text-green-900 */
+            border-bottom-right-radius: 0; /* Tailor border radius for speech bubble effect */
+            border-top-right-radius: 0.25rem; /* Slightly less rounded top-right */
+        }
+        .input-area {
+            display: flex;
+            padding: 1rem; /* p-4 */
+            gap: 1rem; /* gap-4 */
+            border-top: 1px solid #e2e8f0; /* border-t border-gray-200 */
+            background-color: #f8fafc; /* Lighter background for input area */
+            align-items: center; /* Vertically align items */
+        }
+        .input-area input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem; /* px-4 py-3 */
+            border: 1px solid #cbd5e0; /* border border-gray-300 */
+            border-radius: 0.75rem; /* rounded-lg */
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s; /* Smooth transition for focus */
+        }
+        .input-area input:focus {
+            border-color: #2563eb; /* focus:border-blue-600 */
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); /* Focus ring */
+        }
+        .input-area button {
+            background-color: #2563eb; /* bg-blue-600 */
+            color: white;
+            padding: 0.75rem 1.5rem; /* px-6 py-3 */
+            border-radius: 0.75rem; /* rounded-lg */
+            font-weight: 600; /* font-semibold */
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s ease; /* Added transform for click effect */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-area button:hover {
+            background-color: #1d4ed8; /* hover:bg-blue-700 */
+        }
+        .input-area button:active {
+            transform: scale(0.98); /* Slight press effect */
+        }
+        .input-area button:disabled {
+            background-color: #93c5fd; /* bg-blue-300 */
+            cursor: not-allowed;
+            transform: scale(1); /* No press effect when disabled */
+        }
+        .diagnostic-form {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            display: none; /* Hidden by default */
+            overflow-y: auto;
+            position: relative; /* Needed for absolute positioning of print button */
+        }
+        .diagnostic-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .diagnostic-form input[type="text"],
+        .diagnostic-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            background-color: #ffffff; /* Ensure input fields are white */
+        }
+        .diagnostic-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-section {
+            background-color: #f0f4f8;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px dashed #94a3b8;
+        }
+        .form-section h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background-color: #e2e8f0;
+            color: #475569;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 0.75rem 0.75rem 0 0;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-button.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-top: 1rem;
+            background-color: #f8fafc;
+        }
+        .loading-indicator {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            color: #64748b;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #2563eb;
+            animation: spin 1s ease infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .app-container {
+                height: 95vh;
+                margin: 10px;
+            }
+            .input-area {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .input-area button {
+                width: 100%;
+            }
+            .diagnostic-form .print-button-form {
+                position: static; /* Remove absolute positioning on small screens */
+                margin-top: 1.5rem;
+                width: 100%;
+            }
+            .header {
+                flex-direction: column; /* Stack logo and text on small screens */
+                text-align: center;
+            }
+            .header-content {
+                align-items: center; /* Center text on small screens */
+            }
+        }
+
+        /* Print-specific CSS */
+        /* Hide everything by default for print, then show only what's needed */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area-chat, #print-area-chat *,
+            #print-area-form, #print-area-form * {
+                visibility: visible;
+            }
+            #print-area-chat, #print-area-form {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                box-sizing: border-box;
+                background-color: #fff;
+            }
+            .message {
+                max-width: 100%; /* Allow messages to take full width */
+                margin-bottom: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                border: 1px solid #eee; /* Add light border for separation */
+                page-break-inside: avoid;
+                background-color: #fff !important; /* Ensure white background for print */
+                color: #000 !important; /* Ensure black text for print */
+                box-shadow: none !important;
+                border-radius: 0.5rem;
+            }
+            .message.bot {
+                text-align: left;
+            }
+            .message.user {
+                text-align: right; /* Align user messages to the right for print */
+                margin-left: auto; /* Push user messages to the right */
+            }
+            h2, h3 {
+                text-align: center;
+                margin-bottom: 20px;
+                color: #000;
+            }
+            .form-section {
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 10px;
+                background-color: #f9f9f9;
+                page-break-inside: avoid; /* This is the key change */
+            }
+            .form-field label {
+                font-weight: bold;
+                color: #000;
+            }
+            .form-field .value {
+                border-bottom: 1px dashed #999;
+                padding: 5px 0;
+                min-height: 1.5em; /* Ensure some height for empty fields */
+                color: #333;
+                word-wrap: break-word; /* Ensure long text wraps */
+            }
+            .diagnostic-form .print-button-form {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <img src="https://placehold.co/60x60/FFDAC1/334155?text=SALUD" alt="Logo Clínica Endocrina">
+            <div class="header-content">
+                <h1>Clínica Endocrina</h1>
+                <p class="text-sm">Simulador de Casos Clínicos para Estudiantes</p>
+            </div>
+        </div>
+        <div class="tab-container">
+            <button id="chatTab" class="tab-button active">Chat de Casos</button>
+            <button id="formTab" class="tab-button">Ficha Diagnóstica</button>
+        </div>
+
+        <div id="chatView" class="flex flex-col flex-grow overflow-hidden">
+            <div id="chatArea" class="chat-area">
+                <!-- Messages will be appended here -->
+            </div>
+            <div id="loadingIndicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <span>Generando respuesta...</span>
+            </div>
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="Escribe tu pregunta o hipótesis aquí...">
+                <button id="sendButton">
+                    <i class="fas fa-paper-plane mr-2"></i> Enviar
+                </button>
+                <button id="printChatButton" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-print mr-2"></i> Imprimir Chat
+                </button>
+            </div>
+        </div>
+
+        <div id="formView" class="diagnostic-form">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Ficha Diagnóstica del Caso Clínico</h2>
+            <div class="form-section">
+                <h3>Información Básica</h3>
+                <label for="glandAffected">GLÁNDULA AFECTADA:</label>
+                <input type="text" id="glandAffected" placeholder="Ej: Páncreas, Tiroides, etc.">
+
+                <label for="hypofunctionHyperfunction">HIPOFUNCIÓN/HIPERFUNCIÓN:</label>
+                <input type="text" id="hypofunctionHyperfunction" placeholder="Ej: Hiperfunción (exceso), Hipofunción (defecto)">
+
+                <label for="hormoneReleased">HORMONA LIBERADA POR LA GLÁNDULA:</label>
+                <input type="text" id="hormoneReleased" placeholder="Ej: Insulina, Tiroxina, etc.">
+
+                <label for="hormoneFunction">FUNCIÓN DE LA HORMONA:</label>
+                <textarea id="hormoneFunction" placeholder="Describe la función principal de esta hormona en el cuerpo."></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Naturaleza y Tejido Diana</h3>
+                <label for="hormoneNature">NATURALEZA DE LA HORMONA:</label>
+                <input type="text" id="hormoneNature" placeholder="Ej: Proteica, Esteroidea, Derivada de aminoácidos">
+
+                <label for="targetTissue">TEJIDO DIANA:</label>
+                <textarea id="targetTissue" placeholder="¿En qué tejidos o células actúa principalmente esta hormona?"></textarea>
+            </div>
+
+            <div class="form-section">
+                <h3>Síntomas y Diagnóstico</h3>
+                <label for="symptomsAlteration">SÍNTOMAS DE LA ALTERACIÓN:</label>
+                <textarea id="symptomsAlteration" placeholder="Enumera los síntomas observados en el paciente relacionados con la alteración."></textarea>
+
+                <label for="diagnosis">DIAGNÓSTICO:</label>
+                <input type="text" id="diagnosis" placeholder="Nombre de la enfermedad endocrina.">
+            </div>
+
+            <div class="form-section">
+                <h3>Tratamiento y Prevención</h3>
+                <label for="treatment">TRATAMIENTO DE LA ENFERMEDAD:</label>
+                <textarea id="treatment" placeholder="Describe el tratamiento general para esta enfermedad. (Puedes investigar en fuentes externas)."></textarea>
+
+                <label for="healthyHabits">HÁBITOS SALUDABLES/PREVENCIÓN DE LA ENFERMEDAD:</label>
+                <textarea id="healthyHabits" placeholder="Sugiere hábitos o medidas que puedan ayudar a prevenir o manejar la enfermedad. (Puedes investigar en fuentes externas)."></textarea>
+            </div>
+
+            <p class="text-sm text-gray-600 text-center mt-4">
+                Recuerda que esta ficha es para tu aprendizaje. Si tienes dudas, puedes seguir preguntando en el chat o investigar en otras fuentes.
+            </p>
+            <button id="printFormButton" class="print-button-form bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold cursor-pointer transition-colors duration-200 flex items-center justify-center mx-auto mt-6">
+                <i class="fas fa-print mr-2"></i> Imprimir Ficha
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports - MUST use specific versions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let firebaseConfig = {};
+        if (typeof __firebase_config === 'string' && __firebase_config.length > 0) {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Error parsing __firebase_config:", e);
+            }
+        }
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous
+        let isAuthReady = false;
+
+        // --- Firebase Initialization and Authentication ---
+        const initializeFirebase = async () => {
+            try {
+                if (Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            console.log('Firebase user signed in:', userId);
+                        } else {
+                            try {
+                                if (initialAuthToken) {
+                                    await signInWithCustomToken(auth, initialAuthToken);
+                                    console.log('Signed in with custom token.');
+                                } else {
+                                    await signInAnonymously(auth);
+                                    console.log('Signed in anonymously.');
+                                }
+                            } catch (error) {
+                                console.error("Error signing in:", error);
+                            }
+                        }
+                        isAuthReady = true;
+                        console.log('Firebase auth ready. User ID:', userId);
+                        if (chatArea.children.length === 0) {
+                            appendMessage("bot", "¿Qué número de caso deseas explorar? (Elige entre 1 y 10)");
+                        }
+                    });
+                } else {
+                    console.warn("Firebase config not found or invalid. Running without Firebase.");
+                    isAuthReady = true;
+                    if (chatArea.children.length === 0) {
+                        appendMessage("bot", "¿Qué número de caso deseas explorar? (Elige entre 1 y 10)");
+                    }
+                }
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                isAuthReady = true;
+                if (chatArea.children.length === 0) {
+                    appendMessage("bot", "Error al iniciar la aplicación. Por favor, recarga. ¿Qué número de caso deseas explorar? (Elige entre 1 y 10)");
+                }
+            }
+        };
+
+
+        // --- Application State ---
+        let currentCaseNumber = null;
+        let currentCaseData = null;
+        let conversationHistory = [];
+        let phase = 'caseSelection';
+        let botIsTyping = false;
+
+        // --- DOM Elements ---
+        const chatArea = document.getElementById('chatArea');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const chatTab = document.getElementById('chatTab');
+        const formTab = document.getElementById('formTab');
+        const chatView = document.getElementById('chatView');
+        const formView = document.getElementById('formView');
+        const printChatButton = document.getElementById('printChatButton');
+        const printFormButton = document.getElementById('printFormButton');
+
+
+        // --- Clinical Case Data (for Gemini prompts and schema) ---
+        // This structure now defines the prompts and expected schema for API generation
+        const clinicalCasesMeta = {
+            "Diabetes mellitus": {
+                prompt: "Genera un caso clínico simulado para un paciente con Diabetes mellitus tipo 1. Incluye un nombre de paciente diferente, una edad variada (joven, entre 15 y 25 años), una descripción inicial de síntomas (sed intensa, orina frecuente, pérdida de peso, aumento de apetito, fatiga, visión borrosa, infecciones recurrentes), un historial médico familiar o personal relevante (ej. antecedentes familiares de diabetes, estrés), y resultados de análisis de sangre simulados con valores alterados para glucosa en ayunas (alto, ej. entre 200-350 mg/dL), Hemoglobina glicosilada (HbA1c, alto, ej. entre 8.0-12.0%), Insulina sérica (bajo, ej. entre 1.0-4.0 µU/mL) y Péptido C (bajo, ej. entre 0.5-1.0 ng/mL). Proporciona una breve información general sobre la enfermedad de Diabetes mellitus tipo 1. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Páncreas), Hipofunción/Hiperfunción (Hipofunción), Hormona Liberada (Insulina), Función de la Hormona (Regula el metabolismo de la glucosa, permitiendo que las células absorban glucosa de la sangre para energía.), Naturaleza de la Hormona (Proteica), Tejido Diana (Músculo, tejido adiposo, hígado, y la mayoría de las células del cuerpo.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Diabetes mellitus (Tipo 1)). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Hipotiroidismo": {
+                prompt: "Genera un caso clínico simulado para un paciente con Hipotiroidismo. Incluye un nombre de paciente diferente, una edad variada (adulto, entre 30 y 60 años), una descripción inicial de síntomas (cansancio, piel seca, caída de cabello, aumento de peso, estreñimiento, sensibilidad al frío), un historial médico relevante (ej. antecedentes familiares de tiroides, depresión), y resultados de análisis de sangre simulados con valores alterados para TSH (alto, ej. entre 8.0-15.0 µUI/mL), T4 Libre (bajo, ej. entre 0.4-0.7 ng/dL) y Anticuerpos anti-TPO (alto, ej. >100 UI/mL). Proporciona una breve información general sobre el Hipotiroidismo (enfermedad de Hashimoto). Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Tiroides), Hipofunción/Hiperfunción (Hipofunción), Hormona Liberada (Tiroxina (T4), Triyodotironina (T3)), Función de la Hormona (Regulan el metabolismo del cuerpo, la temperatura, el crecimiento y desarrollo.), Naturaleza de la Hormona (Derivada de aminoácidos), Tejido Diana (Casi todas las células del cuerpo.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Hipotiroidismo). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Síndrome de Cushing": {
+                prompt: "Genera un caso clínico simulado para un paciente con Síndrome de Cushing. Incluye un nombre de paciente diferente, una edad variada (adulto, entre 40 y 65 años), una descripción inicial de síntomas (aumento de peso abdominal y facial, cara de luna llena, piel delgada, hematomas fáciles, debilidad muscular, azúcar en sangre elevado), un historial médico relevante (ej. estrías púrpuras, hipertensión, insomnio, irritabilidad), y resultados de análisis de sangre simulados con valores alterados para Cortisol sérico AM (alto, ej. entre 30-45 µg/dL), Cortisol en orina de 24 horas (alto, ej. entre 200-400 µg/24h) y ACTH (alto o bajo, ej. >60 pg/mL si es hipofisario, o <5 pg/mL si es suprarrenal). Proporciona una breve información general sobre el Síndrome de Cushing. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Glándulas Suprarrenales (o Hipófisis en caso de adenoma)), Hipofunción/Hiperfunción (Hiperfunción), Hormona Liberada (Cortisol), Función de la Hormona (Hormona del estrés que regula el metabolismo, suprime la inflamación, y regula la presión arterial y el azúcar en sangre.), Naturaleza de la Hormona (Esteroidea), Tejido Diana (Casi todas las células del cuerpo.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Síndrome de Cushing). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Hipertiroidismo (Enfermedad de Graves)": {
+                prompt: "Genera un caso clínico simulado para un paciente con Hipertiroidismo (Enfermedad de Graves). Incluye un nombre de paciente diferente, una edad variada (joven-adulto, entre 20 y 40 años), una descripción inicial de síntomas (nerviosismo, irritabilidad, dificultad de concentración, pérdida de peso con apetito voraz, sudoración excesiva, palpitaciones, temblores, ojos saltones), un historial médico relevante (ej. antecedentes familiares autoinmunes, intolerancia al calor, insomnio, debilidad muscular), y resultados de análisis de sangre simulados con valores alterados para TSH (bajo, ej. entre 0.01-0.1 µUI/mL), T4 Libre (alto, ej. entre 3.0-5.0 ng/dL) y Anticuerpos receptores de TSH (TRAb, alto, ej. >10 UI/L). Proporciona una breve información general sobre la Enfermedad de Graves. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Tiroides), Hipofunción/Hiperfunción (Hiperfunción), Hormona Liberada (Tiroxina (T4), Triyodotironina (T3)), Función de la Hormona (Regulan el metabolismo del cuerpo, la temperatura, el crecimiento y desarrollo.), Naturaleza de la Hormona (Derivada de aminoácidos), Tejido Diana (Casi todas las células del cuerpo.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Hipertiroidismo (Enfermedad de Graves)). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Gigantismo": {
+                prompt: "Genera un caso clínico simulado para un adolescente con Gigantismo. Incluye un nombre de paciente diferente, una edad variada (adolescente, entre 12 y 18 años), una descripción inicial de síntomas (crecimiento acelerado y desproporcionado, manos y pies inusualmente grandes, rasgos faciales prominentes), un historial médico relevante (ej. dolores articulares, dolores de cabeza frecuentes, visión afectada, pubertad retrasada), y resultados de análisis de sangre simulados con valores alterados para IGF-1 (alto, ej. entre 700-1000 ng/mL) y Hormona de Crecimiento (GH) tras test de supresión con glucosa (alto, ej. >10 µg/L). Proporciona una breve información general sobre el Gigantismo. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Hipófisis (Adenohipófisis)), Hipofunción/Hiperfunción (Hiperfunción), Hormona Liberada (Hormona de Crecimiento (GH)), Función de la Hormona (Estimula el crecimiento, la reproducción celular y la regeneración en humanos y otros animales. Afecta el metabolismo de proteínas, carbohidratos y lípidos.), Naturaleza de la Hormona (Proteica), Tejido Diana (Casi todas las células del cuerpo, especialmente huesos, músculos, cartílagos, y órganos internos.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Gigantismo). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Enfermedad de Addison": {
+                prompt: "Genera un caso clínico simulado para un paciente con Enfermedad de Addison. Incluye un nombre de paciente diferente, una edad variada (adulto joven, entre 20 y 35 años), una descripción inicial de síntomas (fatiga extrema, debilidad muscular, pérdida de peso, falta de apetito, oscurecimiento de la piel), un historial médico relevante (ej. mareos al ponerse de pie, náuseas, vómitos, dolor abdominal, antojos de sal), y resultados de análisis de sangre simulados con valores alterados para Cortisol sérico AM (bajo, ej. entre 1.0-3.0 µg/dL), ACTH (alto, ej. entre 1000-2000 pg/mL), Sodio sérico (bajo, ej. entre 120-130 mEq/L) y Potasio sérico (alto, ej. entre 5.5-6.5 mEq/L). Proporciona una breve información general sobre la Enfermedad de Addison. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Glándulas Suprarrenales), Hipofunción/Hiperfunción (Hipofunción), Hormona Liberada (Cortisol, Aldosterona), Función de la Hormona (Cortisol: Hormona del estrés. Aldosterona: Regula el equilibrio de sodio y potasio y la presión arterial.), Naturaleza de la Hormona (Esteroidea), Tejido Diana (Cortisol: Casi todas las células. Aldosterona: Riñones principalmente.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Enfermedad de Addison). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Síndrome de Ovario Poliquístico (SOP)": {
+                prompt: "Genera un caso clínico simulado para una paciente con Síndrome de Ovario Poliquístico (SOP). Incluye un nombre de paciente diferente, una edad variada (mujer joven, entre 18 y 28 años), una descripción inicial de síntomas (irregularidades menstruales severas, aumento de vello corporal (hirsutismo), aumento de peso, acné persistente), un historial médico relevante (ej. dificultades para quedarse embarazada, resistencia a la insulina, antecedentes familiares), y resultados de análisis de sangre simulados con valores alterados para Testosterona total (alto, ej. entre 70-100 ng/dL), LH (alto, ej. entre 15-25 mUI/mL), FSH (normal o bajo, ej. entre 3-6 mUI/mL) y Glucosa en ayunas (ligeramente elevado, ej. entre 100-125 mg/dL). Proporciona una breve información general sobre el SOP. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Ovarios (y potencialmente glándulas suprarrenales e hipófisis)), Hipofunción/Hiperfunción (Desequilibrio hormonal (exceso de andrógenos, problemas con la ovulación)), Hormona Liberada (Andrógenos (testosterona), Estrógenos, LH, FSH), Función de la Hormona (Andrógenos: hormonas sexuales masculinas presentes en mujeres en pequeñas cantidades. Estrógenos: hormonas sexuales femeninas. LH/FSH: regulan el ciclo menstrual.), Naturaleza de la Hormona (Esteroidea (andrógenos, estrógenos), Proteica (LH, FSH)), Tejido Diana (Ovarios, folículos pilosos, piel, tejido adiposo, músculos.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Síndrome de Ovario Poliquístico (SOP)). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Alopecia hormonal": {
+                prompt: "Genera un caso clínico simulado para un paciente con Alopecia hormonal (Androgénica). Incluye un nombre de paciente diferente, una edad variada (adulto, entre 30 y 50 años), una descripción inicial de síntomas (pérdida progresiva de cabello en patrón específico, cabello fino y escaso), un historial médico relevante (ej. antecedentes familiares de calvicie, sin otros síntomas sistémicos), y resultados de análisis de sangre simulados con valores de Testosterona total (normal, ej. entre 400-800 ng/dL) y DHT (Dihidrotestosterona, ligeramente alto o en el rango superior, ej. entre 60-90 ng/dL). Proporciona una breve información general sobre la Alopecia Androgénica. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Glándulas suprarrenales, Gónadas (testículos/ovarios)), Hipofunción/Hiperfunción (No es una hipofunción o hiperfunción generalizada, sino una sensibilidad folicular a una hormona específica.), Hormona Liberada (Dihidrotestosterona (DHT), Testosterona), Función de la Hormona (DHT: Andrógeno potente que juega un papel en el desarrollo de características masculinas, pero también en la calvicie de patrón masculino en individuos genéticamente susceptibles.), Naturaleza de la Hormona (Esteroidea), Tejido Diana (Folículos pilosos del cuero cabelludo (especialmente en la coronilla y sienes), próstata, piel.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Alopecia hormonal (Androgénica)). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Hiperprolactinemia": {
+                prompt: "Genera un caso clínico simulado para un paciente con Hiperprolactinemia. Incluye un nombre de paciente diferente, una edad variada (adulto, entre 25 y 40 años), una descripción inicial de síntomas (secreción lechosa por los pezones (galactorrea) si es mujer, disminución de libido, disfunción eréctil si es hombre, irregularidades menstruales o ginecomastia, dolores de cabeza ocasionales), un historial médico relevante (ej. problemas de visión, ansiedad, fatiga, depresión, sin embarazo ni lactancia), y resultados de análisis de sangre simulados con valores alterados para Prolactina sérica (alto, ej. entre 100-200 ng/mL) y Testosterona total (bajo en hombres, o Estradiol bajo en mujeres). Proporciona una breve información general sobre la Hiperprolactinemia. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Hipófisis (Adenohipófisis)), Hipofunción/Hiperfunción (Hiperfunción), Hormona Liberada (Prolactina), Función de la Hormona (Estimula la producción de leche materna y tiene funciones en la regulación de la fertilidad y la función inmune.), Naturaleza de la Hormona (Proteica), Tejido Diana (Glándulas mamarias, ovarios, testículos, sistema nervioso central.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Hiperprolactinemia). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            },
+            "Hipogonadismo": {
+                prompt: "Genera un caso clínico simulado para un paciente con Hipogonadismo. Incluye un nombre de paciente diferente, una edad variada (adulto, entre 30 y 50 años), una descripción inicial de síntomas (disminución marcada del deseo sexual, disfunción eréctil o irregularidades menstruales, pérdida de masa muscular, aumento de grasa corporal, fatiga, depresión, disminución de vello corporal/facial o sofocos), un historial médico relevante (ej. infertilidad, fracturas óseas, menopausia temprana en mujeres), y resultados de análisis de sangre simulados con valores alterados para Testosterona total (bajo, ej. entre 150-250 ng/dL en hombres) o Estradiol (bajo, ej. entre 10-30 pg/mL en mujeres), LH (bajo o normal, ej. entre 1.0-3.0 mUI/mL) y FSH (bajo o normal, ej. entre 1.0-3.0 mUI/mL). Proporciona una breve información general sobre el Hipogonadismo. Finalmente, completa los campos de una ficha diagnóstica: Glándula Afectada (Testículos (hombres) / Ovarios (mujeres) o Hipotálamo/Hipófisis), Hipofunción/Hiperfunción (Hipofunción), Hormona Liberada (Testosterona (hombres), Estrógenos (mujeres), LH, FSH), Función de la Hormona (Testosterona: desarrollo de características sexuales masculinas, libido, masa muscular, densidad ósea. Estrógenos: desarrollo sexual femenino, ciclo menstrual, salud ósea. LH/FSH: estimulan la producción de hormonas sexuales y espermatozoides/óvulos.), Naturaleza de la Hormona (Esteroidea (Testosterona, Estrógenos), Proteica (LH, FSH)), Tejido Diana (Órganos reproductores, músculos, huesos, cerebro, piel, vello corporal.), Síntomas de la Alteración (enumera los síntomas iniciales presentados en la descripción), y Diagnóstico (Hipogonadismo). Asegúrate de que todos los valores numéricos sean realistas para la enfermedad y que el texto sea coherente con un caso médico simulado para estudiantes. El nombre del paciente y la edad deben ser nuevos y aleatorios cada vez.",
+                schema: {
+                    type: "OBJECT",
+                    properties: {
+                        diseaseName: { type: "STRING", description: "Nombre de la enfermedad." },
+                        initialDescription: { type: "STRING", description: "Descripción inicial del paciente con nombre y edad." },
+                        history: { type: "STRING", description: "Historial clínico relevante." },
+                        bloodAnalysis: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    param: { type: "STRING" },
+                                    value: { type: "NUMBER" },
+                                    unit: { type: "STRING" },
+                                    refRange: { type: "STRING", description: "Rango de referencia." }
+                                },
+                                required: ["param", "value", "unit", "refRange"],
+                                propertyOrdering: ["param", "value", "unit", "refRange"]
+                            }
+                        },
+                        diagnosisInfo: { type: "STRING", description: "Información general sobre la enfermedad." },
+                        fichaDiagnostica: {
+                            type: "OBJECT",
+                            properties: {
+                                glandAffected: { type: "STRING" },
+                                hypofunctionHyperfunction: { type: "STRING" },
+                                hormoneReleased: { type: "STRING" },
+                                hormoneFunction: { type: "STRING" },
+                                hormoneNature: { type: "STRING" },
+                                targetTissue: { type: "STRING" },
+                                symptomsAlteration: { type: "STRING" },
+                                diagnosis: { type: "STRING" }
+                            },
+                            required: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"],
+                            propertyOrdering: ["glandAffected", "hypofunctionHyperfunction", "hormoneReleased", "hormoneFunction", "hormoneNature", "targetTissue", "symptomsAlteration", "diagnosis"]
+                        }
+                    },
+                    required: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"],
+                    propertyOrdering: ["diseaseName", "initialDescription", "history", "bloodAnalysis", "diagnosisInfo", "fichaDiagnostica"]
+                }
+            }
+        };
+
+        // Map case numbers to disease names
+        const diseaseMap = {
+            1: "Diabetes mellitus",
+            2: "Hipotiroidismo",
+            3: "Síndrome de Cushing",
+            4: "Hipertiroidismo (Enfermedad de Graves)",
+            5: "Gigantismo",
+            6: "Enfermedad de Addison",
+            7: "Síndrome de Ovario Poliquístico (SOP)",
+            8: "Alopecia hormonal",
+            9: "Hiperprolactinemia",
+            10: "Hipogonadismo"
+        };
+
+
+        // --- Functions ---
+
+        /**
+         * Appends a message to the chat area.
+         * @param {string} sender - 'user' or 'bot'.
+         * @param {string} text - The message text.
+         */
+        function appendMessage(sender, text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            // Convert markdown in bot messages to HTML
+            if (sender === 'bot') {
+                messageElement.innerHTML = marked.parse(text); // Use marked.js for Markdown
+            } else {
+                messageElement.textContent = text;
+            }
+            chatArea.appendChild(messageElement);
+            chatArea.scrollTop = chatArea.scrollHeight; // Auto-scroll to bottom
+        }
+
+        /**
+         * Displays or hides the loading indicator.
+         * @param {boolean} show - True to show, false to hide.
+         */
+        function showLoading(show) {
+            loadingIndicator.style.display = show ? 'flex' : 'none';
+            sendButton.disabled = show;
+            userInput.disabled = show;
+            botIsTyping = show;
+        }
+
+        /**
+         * Constructs the prompt for the Gemini API based on the current phase and user input.
+         * @param {string} userQuery - The latest user input.
+         * @returns {string} The full prompt string for Gemini.
+         */
+        function buildGeminiPrompt(userQuery) {
+            let context = `Este chat está diseñado para apoyar a estudiantes de 3º ESO en el aprendizaje del proceso diagnóstico de enfermedades endocrinas mediante casos clínicos simulados. El enfoque es educativo: se busca que el alumno desarrolle su capacidad de razonamiento clínico sin ofrecer diagnósticos directos ni promover autodiagnósticos o automedicación.
+
+GUÍA PARA LA INTERACCIÓN:
+- El alumno debe formular preguntas para obtener información adicional.
+- NO sugieras directamente preguntas preparadas.
+- SIEMPRE proporciona pistas sobre temas a investigar (ej: 'puedes indagar sobre los niveles hormonales, síntomas metabólicos o cambios físicos asociados'). Si el alumno quiere que le des preguntas, indícale temas sobre los que preguntar, pero que él elabore la pregunta.
+- NUNCA emitas un diagnóstico directo.
+- SOLO cuando el alumno, a través de sus preguntas, haya llegado a deducir la enfermedad, podrás confirmarle o comentar sobre su hipótesis, siempre enmarcando la respuesta en un contexto educativo y simulativo.
+- Si el alumno solicita la ficha diagnóstica, recuérdale que debe completarla con la información que obtenga y sugiérele que busque el tratamiento y prevención en fuentes externas.
+- El tono debe ser educativo, claro y accesible para estudiantes de 3º ESO. Evita tecnicismos innecesarios. Promueve la reflexión y el razonamiento, animando al alumno a explorar y preguntar.
+`;
+
+            if (phase === 'caseSelection') {
+                return context + "\nSiempre debe iniciar preguntando al estudiante: '¿Qué número de caso deseas explorar? (Elige entre 1 y 10)' Pero no le digas cuáles son los casos. Los casos disponibles están basados en ejemplos de enfermedades endocrinas. Importante: Aunque se describan los casos, no se debe revelar el nombre de la enfermedad; el alumno debe identificarla a través de su indagación. Tu objetivo principal es guiar al alumno a través del proceso de razonamiento clínico, proporcionar pistas sobre temas a investigar (sin dar preguntas directas), y solo confirmar el diagnóstico cuando el alumno lo haya deducido. Nunca des el diagnóstico directamente.";
+            } else if (currentCaseData) {
+                let caseDetails = `\nCONTEXTO DEL CASO ACTUAL (para tu referencia, no reveles la enfermedad directamente):
+                Nombre de la enfermedad: ${currentCaseData.diseaseName}
+
+                DESCRIPCIÓN INICIAL:
+                ${currentCaseData.initialDescription || 'Descripción no disponible. El alumno debe preguntar por la historia clínica o el análisis de sangre.'}
+                `;
+
+                // Check conversation history to decide if specific details have been requested before
+                const historyRequested = conversationHistory.some(c => c.role === 'user' && (c.text.toLowerCase().includes('historia clínica') || c.text.toLowerCase().includes('historial')));
+                const bloodAnalysisRequested = conversationHistory.some(c => c.role === 'user' && (c.text.toLowerCase().includes('análisis de sangre') || c.text.toLowerCase().includes('pruebas')));
+
+                // FIX: Added defensive check for currentCaseData.history
+                if (historyRequested && currentCaseData.history) {
+                    caseDetails += `\nHISTORIA CLÍNICA:
+                    ${currentCaseData.history}
+                    `;
+                }
+
+                // FIX: Added defensive check for currentCaseData.bloodAnalysis
+                if (bloodAnalysisRequested && currentCaseData.bloodAnalysis) {
+                    caseDetails += `\nRESULTADOS DE ANÁLISIS DE SANGRE SIMULADOS:
+                    ${currentCaseData.bloodAnalysis.map(b => `- **${b.param}**: ${b.value} ${b.unit} (Referencia: ${b.refRange} ${b.unit})`).join('\n')}
+                    No saques conclusiones del análisis. Dile al alumno que observe los valores y diga qué parámetros están alterados para seguir indagando acerca de la causa.
+                    `;
+                }
+
+                // If user attempts a diagnosis, provide internal disease info for comparison
+                if (userQuery.toLowerCase().includes('diagnóstico') || userQuery.toLowerCase().includes('enfermedad es') || userQuery.toLowerCase().includes('mi hipótesis')) {
+                     caseDetails += `\nINFORMACIÓN SOBRE LA ENFERMEDAD (para tu validación):
+                     ${currentCaseData.diagnosisInfo}
+                     Nombre correcto: ${currentCaseData.diseaseName}
+                     `;
+                }
+
+                return context + caseDetails + `\nPREGUNTA DEL ALUMNO: ${userQuery}`;
+            }
+            return context + `\nPREGUNTA DEL ALUMNO: ${userQuery}`;
+        }
+
+        /**
+         * Calls the Gemini API with the constructed prompt.
+         * @param {string} prompt - The prompt for the Gemini API.
+         * @param {object} [generationConfig={}] - Optional configuration for the Gemini API, including responseSchema.
+         * @returns {Promise<string|object>} The generated text or parsed JSON from Gemini.
+         */
+        async function getGeminiResponse(prompt, generationConfig = {}) {
+            showLoading(true);
+            try {
+                const apiChatHistory = conversationHistory.map(entry => ({
+                    role: entry.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: entry.text }]
+                }));
+
+                // The last user query is already in the main conversationHistory list, so we don't push it again here.
+                // We will use the 'prompt' parameter which contains the last user query wrapped in the context.
+
+                const payload = { contents: apiChatHistory }; // Send full history + current turn
+                if (Object.keys(generationConfig).length > 0) {
+                    payload.generationConfig = generationConfig;
+                    // For case generation, we only send the final prompt, not the full history
+                    // as we want a fresh generation based on the structured schema.
+                    payload.contents = [{ role: "user", parts: [{ text: prompt }] }];
+                } else {
+                     // For regular chat, push the final prompt (which contains the user's latest query)
+                    payload.contents.push({ role: "user", parts: [{ text: prompt }] });
+                }
+
+
+                const apiKey = "";
+                // Use gemini-2.5-flash-preview-09-2025 for better JSON reliability
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                console.log("Gemini API Response:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    // If responseSchema was provided, assume it's JSON and try to parse
+                    if (generationConfig.responseMimeType === "application/json") {
+                        try {
+                            const parsedJson = JSON.parse(text);
+                            // Ensure the diagnosisName in the generated ficha matches the main diseaseName for consistency
+                            if (parsedJson.fichaDiagnostica && parsedJson.diseaseName) {
+                                parsedJson.fichaDiagnostica.diagnosis = parsedJson.diseaseName;
+                            }
+                            return parsedJson;
+                        } catch (e) {
+                            console.error("Error parsing JSON response from Gemini:", e);
+                            return { error: "Formato de respuesta JSON inválido del modelo." };
+                        }
+                    }
+                    return text;
+                } else {
+                    console.error("Unexpected Gemini API response structure or no content:", result);
+                    return "Lo siento, no pude generar una respuesta. Por favor, intenta de nuevo.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                return "Hubo un error al comunicarse con el modelo. Por favor, intenta de nuevo.";
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        /**
+         * Handles the user's input and manages the chat flow.
+         */
+        async function handleUserInput() {
+            if (botIsTyping) return;
+
+            let userText = userInput.value.trim();
+            if (!userText) return;
+
+            appendMessage("user", userText);
+            userInput.value = '';
+
+            conversationHistory.push({ role: "user", text: userText });
+
+            let botResponse = "";
+
+            if (phase === 'caseSelection') {
+                const caseNum = parseInt(userText);
+                if (caseNum >= 1 && caseNum <= 10) {
+                    const selectedDiseaseName = diseaseMap[caseNum];
+                    const caseMeta = clinicalCasesMeta[selectedDiseaseName];
+
+                    if (caseMeta) {
+                        const generationConfig = {
+                            responseMimeType: "application/json",
+                            responseSchema: caseMeta.schema
+                        };
+                        appendMessage("bot", "Generando un nuevo caso clínico para ti...");
+                        const generatedCase = await getGeminiResponse(caseMeta.prompt, generationConfig);
+
+                        if (generatedCase && !generatedCase.error) {
+                            currentCaseData = generatedCase;
+                            // Ensure diseaseName is consistent from our map, even if AI varies it slightly
+                            currentCaseData.diseaseName = selectedDiseaseName;
+                            currentCaseNumber = caseNum;
+                            phase = 'symptomDescription';
+
+                            // FIX: Corrected robust check for initialDescription property (the core fix)
+                            const initialDescriptionText = currentCaseData.initialDescription && currentCaseData.initialDescription.trim().length > 0
+                                ? currentCaseData.initialDescription
+                                : currentCaseData.history && currentCaseData.history.trim().length > 0
+                                    ? currentCaseData.history
+                                    : "No se pudo obtener la descripción inicial del paciente. Por favor, pregunta por la **historia clínica** o los **análisis de sangre** para empezar a trabajar en el diagnóstico.";
+
+
+                            botResponse = `¡Excelente! Has elegido el caso ${caseNum}. Aquí tienes la descripción inicial: ${initialDescriptionText}\n\nPara seguir indagando, puedes formular preguntas sobre la historia clínica, síntomas adicionales, o qué pruebas te gustaría realizar.`;
+
+                        } else {
+                            botResponse = generatedCase.error || "Lo siento, hubo un problema al generar el caso clínico. Por favor, intenta de nuevo.";
+                            phase = 'caseSelection'; // Stay in case selection if generation failed
+                        }
+                    } else {
+                        botResponse = "Ese número de caso no es válido. Por favor, elige un número entre 1 y 10.";
+                    }
+                } else {
+                    botResponse = "Ese número de caso no es válido. Por favor, elige un número entre 1 y 10.";
+                }
+            } else {
+                if (!currentCaseData || !currentCaseData.diseaseName) {
+                    botResponse = "Por favor, selecciona un número de caso primero para empezar la simulación. (Elige entre 1 y 10)";
+                    phase = 'caseSelection';
+                    appendMessage("bot", botResponse);
+                    conversationHistory.push({ role: "bot", text: botResponse });
+                    return;
+                }
+
+                const geminiPrompt = buildGeminiPrompt(userText);
+                botResponse = await getGeminiResponse(geminiPrompt);
+
+                // Check for keywords and append stored data if necessary
+                if (userText.toLowerCase().includes('historia clínica') || userText.toLowerCase().includes('historial')) {
+                    if (currentCaseData.history) {
+                        // Check if the model already included the history detail in its response
+                        if (!botResponse.toLowerCase().includes(currentCaseData.history.toLowerCase().substring(0, 10))) {
+                             botResponse = botResponse + `\n\nAquí tienes un resumen de la historia clínica: ${currentCaseData.history}`;
+                        }
+                    }
+                }
+                if (userText.toLowerCase().includes('análisis de sangre') || userText.toLowerCase().includes('pruebas')) {
+                    if (currentCaseData.bloodAnalysis) {
+                        const analysisText = currentCaseData.bloodAnalysis.map(b => `- **${b.param}**: ${b.value} ${b.unit} (Referencia: ${b.refRange} ${b.unit})`).join('\n');
+                        // Check if the model already included the analysis detail in its response
+                        if (!botResponse.toLowerCase().includes('análisis de sangre') || !botResponse.toLowerCase().includes(currentCaseData.bloodAnalysis[0].param.toLowerCase())) {
+                            let analysisResponse = "\n\nSugiero realizar un análisis de sangre. Aquí tienes los resultados:\n";
+                            analysisResponse += analysisText;
+                            analysisResponse += "\n\nObserva los valores. ¿Qué parámetros están alterados? ¿Qué puedes deducir de ellos para seguir indagando acerca de la causa?";
+                            botResponse = botResponse + analysisResponse;
+                        }
+                    }
+                }
+
+                const userDiagnosisAttempt = userText.toLowerCase().replace(/[¿?¡!.,]/g, '');
+                const actualDiseaseName = currentCaseData.diseaseName.toLowerCase().replace(/[¿?¡!.,]/g, '');
+
+                if (userDiagnosisAttempt.includes('diagnóstico') || userDiagnosisAttempt.includes('enfermedad es') || userDiagnosisAttempt.toLowerCase().includes('mi hipótesis es')) {
+                    let inferredDiagnosis = '';
+                    for (const key in diseaseMap) {
+                        if (diseaseMap.hasOwnProperty(key)) {
+                            const diseaseName = diseaseMap[key];
+                            if (userDiagnosisAttempt.includes(diseaseName.toLowerCase().replace(/[¿?¡!.,]/g, ''))) {
+                                inferredDiagnosis = diseaseName;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (inferredDiagnosis && inferredDiagnosis.toLowerCase().includes(actualDiseaseName)) {
+                        botResponse = botResponse + `\n\n¡Excelente razonamiento! Has llegado a la conclusión correcta. El diagnóstico de este caso simulado es **${currentCaseData.diseaseName}**. ¡Felicidades! Ahora puedes intentar completar la Ficha Diagnóstica.`;
+                        phase = 'diagnosisAttempt';
+                    } else if (inferredDiagnosis && !inferredDiagnosis.toLowerCase().includes(actualDiseaseName)) {
+                        botResponse = botResponse + `\n\nEsa es una buena hipótesis, pero te animo a revisar la información que hemos visto. ¿Qué otros síntomas o valores analíticos podrían dirigirte a una conclusión diferente? Sigue indagando.`;
+                    } else {
+                        botResponse = botResponse + `\n\nEntiendo que estás listo para el diagnóstico. ¿Cuál es tu hipótesis de la enfermedad? Nombra la enfermedad que crees que es, por favor.`;
+                    }
+                }
+
+                if (userText.toLowerCase().includes('ficha diagnóstica') || userText.toLowerCase().includes('ficha')) {
+                    botResponse = botResponse + `\n\n¡Claro! La ficha diagnóstica está disponible en la pestaña 'Ficha Diagnóstica' arriba. Puedes rellenarla con la información que has ido obteniendo. Para el tratamiento y hábitos saludables, te sugiero que investigues en fuentes externas de internet.`;
+                    formTab.click();
+                }
+            }
+
+            appendMessage("bot", botResponse);
+            conversationHistory.push({ role: "bot", text: botResponse });
+        }
+
+        /**
+         * Handles printing the chat conversation.
+         */
+        function printChat() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Conversación del Caso Clínico</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write(`
+                body { font-family: 'Inter', sans-serif; margin: 20px; }
+                h2 { text-align: center; margin-bottom: 20px; color: #333; }
+                .message {
+                    max-width: 100%;
+                    margin-bottom: 0.5rem;
+                    padding: 0.5rem 0.75rem;
+                    border: 1px solid #eee;
+                    page-break-inside: avoid;
+                    border-radius: 0.5rem;
+                }
+                .message.bot {
+                    background-color: #e0f2fe;
+                    color: #1e3a8a;
+                    text-align: left;
+                }
+                .message.user {
+                    background-color: #d1fae5;
+                    color: #065f46;
+                    text-align: right;
+                    margin-left: auto;
+                }
+                .message p {
+                    margin: 0;
+                }
+            `);
+            printWindow.document.write('</style></head><body>');
+            printWindow.document.write('<h2>Conversación del Simulador de Casos Clínicos Endocrinos</h2>');
+            printWindow.document.write('<div id="print-area-chat">');
+
+            const chatMessages = chatArea.querySelectorAll('.message');
+            chatMessages.forEach(msg => {
+                printWindow.document.write(msg.outerHTML);
+            });
+
+            printWindow.document.write('</div></body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        /**
+         * Handles printing the diagnostic form.
+         */
+        function printForm() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Ficha Diagnóstica</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write(`
+                body { font-family: 'Inter', sans-serif; margin: 20px; }
+                h2 { text-align: center; margin-bottom: 20px; color: #333; }
+                h3 { color: #1e293b; margin-top: 20px; margin-bottom: 10px; text-align: center; }
+                .form-section {
+                    border: 1px solid #ccc;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                    background-color: #f9f9f9;
+                    border-radius: 0.75rem;
+                    page-break-inside: avoid;
+                }
+                .form-field {
+                    margin-bottom: 15px;
+                }
+                .form-field label {
+                    font-weight: bold;
+                    display: block;
+                    margin-bottom: 5px;
+                    color: #000;
+                }
+                .form-field .value {
+                    border-bottom: 1px dashed #999;
+                    padding: 5px 0;
+                    min-height: 1.5em;
+                    color: #333;
+                    word-wrap: break-word;
+                }
+            `);
+            printWindow.document.write('</style></head><body>');
+            printWindow.document.write('<h2>Ficha Diagnóstica del Caso Clínico</h2>');
+            printWindow.document.write('<div id="print-area-form">');
+
+            formView.querySelectorAll('.form-section').forEach(section => {
+                const sectionTitle = section.querySelector('h3') ? `<h3>${section.querySelector('h3').textContent}</h3>` : '';
+                printWindow.document.write(`<div class="form-section">${sectionTitle}`);
+
+                section.querySelectorAll('label').forEach(label => {
+                    const inputId = label.getAttribute('for');
+                    const inputElement = document.getElementById(inputId);
+                    if (inputElement) {
+                        const value = inputElement.value.trim() || "No especificado";
+                        printWindow.document.write(`
+                            <div class="form-field">
+                                <label>${label.textContent}</label>
+                                <div class="value">${value}</div>
+                            </div>
+                        `);
+                    }
+                });
+                printWindow.document.write(`</div>`);
+            });
+
+            printWindow.document.write('</div></body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+
+        // --- Event Listeners ---
+        sendButton.addEventListener('click', handleUserInput);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
+        chatTab.addEventListener('click', () => {
+            chatTab.classList.add('active');
+            formTab.classList.remove('active');
+            chatView.style.display = 'flex';
+            formView.style.display = 'none';
+        });
+
+        formTab.addEventListener('click', () => {
+            formTab.classList.add('active');
+            chatTab.classList.remove('active');
+            chatView.style.display = 'none';
+            formView.style.display = 'block';
+        });
+
+        printChatButton.addEventListener('click', printChat);
+        printFormButton.addEventListener('click', printForm);
+
+
+        // --- Initialize marked.js for Markdown parsing ---
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        script.onload = () => {
+            console.log('Marked.js loaded');
+            initializeFirebase();
+        };
+        document.head.appendChild(script);
+
+    </script>
+</body>
+</html>
